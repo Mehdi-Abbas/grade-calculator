@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+			background: #fff;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #f3f3f3;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 1.5em;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .add-btn {
+            background: #3b82f6;
+            color: white;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .add-btn:active {
+            transform: scale(0.98);
+        }
+
+        .item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+
+        .item-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 6px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 10px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .final-grade {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .final-grade h2 {
+            font-size: 1em;
+            margin-bottom: 8px;
+        }
+
+        .grade-value {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .grade-meta {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 12px;
+            font-size: 0.85em;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Grade Calculator</h1>
+        
+        <div class="input-section">
+            <input type="text" id="itemName" placeholder="Assessment name" style="margin-bottom: 8px;">
+            <div class="input-row">
+                <input type="number" id="weight" placeholder="Weight %" min="0" max="100">
+                <input type="number" id="score" placeholder="Score" min="0">
+            </div>
+            <input type="number" id="total" placeholder="Total points" min="0" style="margin-bottom: 8px;">
+            <button class="add-btn" onclick="addItem()">+ Add</button>
+        </div>
+
+        <div id="itemsList">
+            <div class="empty-state">No assessments added yet</div>
+        </div>
+
+        <div class="final-grade">
+            <h2>Final Grade</h2>
+            <div class="grade-value" id="finalGrade">0%</div>
+            <div class="grade-meta">
+                <div><strong>Weight:</strong> <span id="totalWeight">0%</span></div>
+                <div><strong>Score:</strong> <span id="weightedScore">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let items = JSON.parse(localStorage.getItem('gradeItems')) || [];
+
+        function saveToStorage() {
+            localStorage.setItem('gradeItems', JSON.stringify(items));
+        }
+
+        function addItem() {
+            const name = document.getElementById('itemName').value;
+            const weight = parseFloat(document.getElementById('weight').value);
+            const score = parseFloat(document.getElementById('score').value);
+            const total = parseFloat(document.getElementById('total').value);
+
+            if (!name || isNaN(weight) || isNaN(score) || isNaN(total)) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            if (total === 0) {
+                alert('Total points cannot be zero');
+                return;
+            }
+
+            items.push({ name, weight, score, total });
+            
+            document.getElementById('itemName').value = '';
+            document.getElementById('weight').value = '';
+            document.getElementById('score').value = '';
+            document.getElementById('total').value = '';
+
+            saveToStorage();
+            renderItems();
+            calculateFinalGrade();
+        }
+
+        function deleteItem(index) {
+            items.splice(index, 1);
+            saveToStorage();
+            renderItems();
+            calculateFinalGrade();
+        }
+
+        function renderItems() {
+            const list = document.getElementById('itemsList');
+            
+            if (items.length === 0) {
+                list.innerHTML = '<div class="empty-state">No assessments added yet</div>';
+                return;
+            }
+
+            list.innerHTML = items.map((item, index) => {
+                const percentage = ((item.score / item.total) * 100).toFixed(1);
+                return `
+                    <div class="item">
+                        <div class="item-header">
+                            <div class="item-name">${item.name}</div>
+                            <button class="delete-btn" onclick="deleteItem(${index})">✕</button>
+                        </div>
+                        <div class="item-stats">
+                            <div class="stat">
+                                <span class="stat-label">Weight</span>
+                                <span class="stat-value">${item.weight}%</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Score</span>
+                                <span class="stat-value">${item.score}/${item.total}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Grade</span>
+                                <span class="stat-value">${percentage}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function calculateFinalGrade() {
+            if (items.length === 0) {
+                document.getElementById('finalGrade').textContent = '0%';
+                document.getElementById('totalWeight').textContent = '0%';
+                document.getElementById('weightedScore').textContent = '0';
+                return;
+            }
+
+            let totalWeight = 0;
+            let weightedSum = 0;
+
+            items.forEach(item => {
+                const percentage = (item.score / item.total) * 100;
+                weightedSum += (percentage * item.weight) / 100;
+                totalWeight += item.weight;
+            });
+
+            const finalGrade = totalWeight > 0 ? (weightedSum / totalWeight) * 100 : 0;
+
+            document.getElementById('finalGrade').textContent = finalGrade.toFixed(2) + '%';
+            document.getElementById('totalWeight').textContent = totalWeight.toFixed(1) + '%';
+            document.getElementById('weightedScore').textContent = weightedSum.toFixed(2);
+        }
+
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addItem();
+            }
+        });
+
+        // Load saved data on page load
+        renderItems();
+        calculateFinalGrade();
+    </script>
+</body>
+</html>
